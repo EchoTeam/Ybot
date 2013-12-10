@@ -177,7 +177,9 @@ handle_info({_, _Socket, Data}, State) ->
             case parse_data(Data) of
                 success ->
                     % make xmpp stream string
-                    NewStream = lists:last(string:tokens(binary_to_list(State#state.login), "@")),
+                    Login = string:tokens(binary_to_list(State#state.login), "@"),
+                    NewStream = lists:last(Login),
+                    Nickname  = hd(Login),
                     % create new stream
                     (State#state.socket_mod):send(State#state.socket, ?STREAM(NewStream)),
                     % bind resource
@@ -187,7 +189,9 @@ handle_info({_, _Socket, Data}, State) ->
                     % send presence
                     (State#state.socket_mod):send(State#state.socket, xmpp_xml:presence()),
                     % Join to muc
-                    (State#state.socket_mod):send(State#state.socket, xmpp_xml:muc(State#state.room)),
+                    Room = hd(string:tokens(binary_to_list(State#state.room), "/")),
+                    RoomNick = erlang:iolist_to_binary([Room, "/", Nickname]),
+                    (State#state.socket_mod):send(State#state.socket, xmpp_xml:muc(RoomNick)),
                     % set is_auth = true and return
                     {noreply, State#state{is_auth = true, success = true}};
                 ok ->
