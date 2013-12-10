@@ -156,15 +156,17 @@ handle_info({tcp_error, _Socket, Reason}, State) ->
 %% handle chat message
 handle_info({_, _, "<message " ++ Rest}, State) ->
     % parse xml
-    case xmerl_scan:string("<message " ++ Rest) of
+    try xmerl_scan:string("<message " ++ Rest) of
         [] ->
-            {noreply, State};
+            nop;
         {Xml, _} ->
             % Try to catch incoming xmpp message and send it to hander
-            ok = is_xmpp_message(Xml, State#state.callback),
-            % return
-            {noreply, State}
-    end;
+            ok = is_xmpp_message(Xml, State#state.callback)
+    catch
+        C:R ->
+            lager:warning("Bad xml. It is posible that this is a first part of message")
+    end,
+    {noreply, State};
 
 %% @doc Handle incoming XMPP message
 handle_info({_, _Socket, Data}, State) ->

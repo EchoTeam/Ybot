@@ -42,7 +42,7 @@ start_xmpp_client(CallbackModule, Login, Password, Server, Port, Room, Resource,
     % Xmpp child
     Child = {xmpp_client, 
                 {xmpp_client, start_link, [CallbackModule, Login, Password, Server, Port, Room, Resource, SocketMode, ReconnectTimeout]},
-                temporary, 2000, worker, []
+                permanent, 2000, worker, []
             },
 
     % run new xmpp client
@@ -53,4 +53,4 @@ start_xmpp_client(CallbackModule, Login, Password, Server, Port, Room, Resource,
 %% ===================================================================
 init([]) ->
     % init and start
-    {ok,{{one_for_one, 2, 60}, []}}.
+    {ok,{{one_for_one, 10, 60}, []}}.
